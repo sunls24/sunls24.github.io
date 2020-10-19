@@ -1,19 +1,3 @@
-// 打印主题标识,请保留出处
-;(function () {
-  var style1 = 'background:#4BB596;color:#ffffff;border-radius: 2px;'
-  var style2 = 'color:#000000;'
-  var author = ' TMaize'
-  var github = ' https://github.com/TMaize/tmaize-blog'
-  var build = ' ' + blog.buildAt.substr(0, 4)
-  build += '/' + blog.buildAt.substr(4, 2)
-  build += '/' + blog.buildAt.substr(6, 2)
-  build += ' ' + blog.buildAt.substr(8, 2)
-  build += ':' + blog.buildAt.substr(10, 2)
-  console.info('%c Author %c' + author, style1, style2)
-  console.info('%c Build  %c' + build, style1, style2)
-  console.info('%c GitHub %c' + github, style1, style2)
-})()
-
 /**
  * 工具，允许多次onload不被覆盖
  * @param {方法} func
@@ -155,11 +139,11 @@ blog.encodeRegChar = function (str) {
  * @param {字符串} str
  */
 blog.ajax = function (option, success, fail) {
-  var xmlHttp = null
+  var xhr = null
   if (window.XMLHttpRequest) {
-    xmlHttp = new XMLHttpRequest()
+    xhr = new XMLHttpRequest()
   } else {
-    xmlHttp = new ActiveXObject('Microsoft.XMLHTTP')
+    xhr = new ActiveXObject('Microsoft.XMLHTTP')
   }
   var url = option.url
   var method = (option.method || 'GET').toUpperCase()
@@ -167,36 +151,19 @@ blog.ajax = function (option, success, fail) {
   var timeout = option.timeout || 10000
 
   var timer
-  var isTimeout = false
-  xmlHttp.open(method, url, sync)
-  xmlHttp.onreadystatechange = function () {
-    if (isTimeout) {
-      fail({
-        error: '请求超时'
-      })
-    } else {
-      if (xmlHttp.readyState == 4) {
-        if (xmlHttp.status == 200) {
-          success(xmlHttp.responseText)
-        } else {
-          fail({
-            error: '状态错误',
-            code: xmlHttp.status
-          })
-        }
-        //清除未执行的定时函数
-        clearTimeout(timer)
+  xhr.open(method, url, sync)
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState == 4) {
+      clearTimeout(timer)
+      if (xhr.status >= 200 && xhr.status < 300) {
+        success && success(xhr.responseText)
+      } else {
+        fail && fail()
       }
     }
   }
-  timer = setTimeout(function () {
-    isTimeout = true
-    fail({
-      error: '请求超时'
-    })
-    xmlHttp.abort()
-  }, timeout)
-  xmlHttp.send()
+  timer = setTimeout(xhr.abort, timeout)
+  xhr.send()
 }
 
 /**
@@ -286,8 +253,8 @@ blog.addLoadEvent(function () {
     }
   }
   blog.addEvent(window, 'scroll', ckeckToShow)
-  blog.addEvent(toTopDOM, 'click', function(event){
-    window.scrollTo(0,0)
+  blog.addEvent(toTopDOM, 'click', function (event) {
+    window.scrollTo(0, 0)
     event.stopPropagation()
   }, true)
   ckeckToShow()

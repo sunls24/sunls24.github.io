@@ -2,7 +2,7 @@
 function loadAllPostData(callback) {
   if (localStorage.db && localStorage.dbVersion == blog.buildAt) {
     console.log('loadAllPostData from localStorage')
-    callback ? callback(localStorage.db) : ''
+    callback && callback(localStorage.db)
     return
   }
 
@@ -18,11 +18,10 @@ function loadAllPostData(callback) {
     function (data) {
       localStorage.db = data
       localStorage.dbVersion = blog.buildAt
-      callback ? callback(data) : ''
+      callback && callback(data)
     },
     function () {
-      console.error('全文检索数据加载失败...')
-      callback ? callback(null) : ''
+      callback && callback(null)
     }
   )
 }
@@ -30,29 +29,23 @@ function loadAllPostData(callback) {
 // 搜索功能
 blog.addLoadEvent(function () {
   // 标题等信息
-  var titles = []
+  var titles = parseTitle()
   // 正文内容
   var contents = []
   // IOS 键盘中文输入bug
   var inputLock = false
   // 输入框
   var input = document.getElementById('search-input')
-
-  // 非搜索页面，预加载数据
-  if (!input) {
-    setTimeout(function () {
-      loadAllPostData()
-    }, 3500)
-    return
-  }
-
   var loadingDOM = document.querySelector('.page-search h1 img')
   loadingDOM.style.opacity = 1
   loadAllPostData(function (data) {
     console.log('loadAllPostData done')
     loadingDOM.style.opacity = 0
-    titles = parseTitle(data)
     contents = parseContent(data)
+    if (!input.value) {
+      return
+    }
+
     search(input.value)
   })
 
@@ -109,7 +102,7 @@ blog.addLoadEvent(function () {
         dom_title.innerHTML = title.replace(r1, h1 + key + h2)
       }
       // 内容先找到第一个，然后确定100个字符，再对这100个字符做全局替换
-      var cResult = r2.exec(content)
+      var cResult = content && r2.exec(content)
       if (cResult) {
         hide = false
         index = cResult.index
